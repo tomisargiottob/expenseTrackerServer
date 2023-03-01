@@ -42,13 +42,14 @@ router.post('/:id/accounts', async function (req, res) {
       name,
       type
     } = req.body
-    const existentAccount = Account.find({name,type,organization})
-    if(existentAccount) throw new Error('Account already exists in organization')
-    const account = new Account({name, type, organization});
+    const existentAccount = await Account.find({name,type,organization: id})
+    if(existentAccount.length) throw new Error('Account already exists in organization')
+    const account = new Account({name, type, organization: id});
     await account.save();
     res.send('Organization Account successfully added');
   } catch (error) {
-    res.status(500).json(error);
+    console.log(error.message)
+    res.status(500).json(error.message);
   }
 });
 
