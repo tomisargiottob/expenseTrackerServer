@@ -9,14 +9,14 @@ class UserController {
             email: req.body.email,
           });
       
-          if (!user) throw new Error('Check your credentials');
+          if (!user) throw new Error('Email is not registered');
       
           if (!bcrypt.compareSync(req.body.password, user.password))
             throw new Error('Check your credentials');
           const organization = await Organization.findOne({_id: user.organization})
           res.send({user, organization});
         } catch (error) {
-          res.status(500).json({ message: error.message });
+          res.status(401).json({ message: error.message });
         }
       }
 
