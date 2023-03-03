@@ -4,13 +4,11 @@ const app = express()
 app.use(express.json())
 const path = require('path')
 const userRouter = require('./routes/usersRoute')
-const transactionsRouter = require('./routes/transactionsRoute')
 const organizationsRouter = require('./routes/organizationRoute')
 
-app.use('/api/users/' , userRouter)
-app.use('/api/transactions/' , transactionsRouter)
-app.use('/api/organizations/' , organizationsRouter)
 
+app.use('/api/users/' , userRouter)
+app.use('/api' , organizationsRouter)
 
 const port = process.env.PORT || 5000
 
