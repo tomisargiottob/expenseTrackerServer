@@ -53,6 +53,14 @@ class CategoriesController {
         res.status(500).json(error);
       }
     }
+    static async updateCategory (req, res) {
+      try {
+        await Category.findOneAndUpdate({_id : req.params.id, organization: req.params.organizationId} , req.body)
+        res.send("Category Updated Successfully");
+      } catch (error) {
+        res.status(500).json(error);
+      }
+    }
 }
 
 module.exports = CategoriesController
