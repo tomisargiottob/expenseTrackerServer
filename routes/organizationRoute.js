@@ -19,15 +19,15 @@ router.get("/organizations/:organizationId/transactions/", TransactionController
 
 router.post('/organizations/:organizationId/categories', CategoriesController.createCategory);
 router.delete('/organizations/:organizationId/categories/:id', CategoriesController.removeCategory);
-router.put('/organizations/:organizationId/categories/:id', CategoriesController.createCategory);
+router.put('/organizations/:organizationId/categories/:id', CategoriesController.updateCategory);
 router.get('/organizations/:organizationId/categories', CategoriesController.getCategories);
 
 // Accounts
 
 
 router.post('/organizations/:organizationId/accounts', AccountsController.createAccount);
-router.delete('/organizations/:organizationId/accounts/:id', AccountsController.createAccount);
-router.put('/organizations/:organizationId/accounts/:id', AccountsController.createAccount);
+router.delete('/organizations/:organizationId/accounts/:id', AccountsController.removeAccount);
+router.put('/organizations/:organizationId/accounts/:id', AccountsController.updateAccount);
 router.get('/organizations/:organizationId/accounts', AccountsController.getAccounts);
 
 module.exports = router;
