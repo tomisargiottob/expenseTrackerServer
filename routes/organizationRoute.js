@@ -3,6 +3,8 @@ const TransactionController = require('../controllers/transactions')
 const OrganizationController = require('../controllers/organizations');
 const CategoriesController = require('../controllers/categories');
 const AccountsController = require('../controllers/accounts');
+const AccountTypesController = require('../controllers/accountTypes');
+
 
 const router = express.Router();
 
@@ -24,10 +26,16 @@ router.get('/organizations/:organizationId/categories', CategoriesController.get
 
 // Accounts
 
-
 router.post('/organizations/:organizationId/accounts', AccountsController.createAccount);
 router.delete('/organizations/:organizationId/accounts/:id', AccountsController.removeAccount);
 router.put('/organizations/:organizationId/accounts/:id', AccountsController.updateAccount);
 router.get('/organizations/:organizationId/accounts', AccountsController.getAccounts);
+
+// accountTypes
+
+router.post('/organizations/:organizationId/accountTypes', AccountTypesController.createAccountType);
+router.delete('/organizations/:organizationId/accountTypes/:id', AccountTypesController.removeAccountType);
+router.put('/organizations/:organizationId/accountTypes/:id', AccountTypesController.updateAccountType);
+router.get('/organizations/:organizationId/accountTypes', AccountTypesController.getAccountTypes);
 
 module.exports = router;
