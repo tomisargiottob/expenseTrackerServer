@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const transactionSchema = new mongoose.Schema({
   organization : { type: String, required: true, ref: 'Organizations'},
   account: { type: String, required: true, ref: 'Accounts' },
-  accountType: { type: String, required: true },
+  accountType: { type: String, required: true, ref: 'AccountTypes' },
   amount: { type: Number, required: true },
   type: { type: String, required: true },
   category: { type: String, required: true, ref: 'Categories' },

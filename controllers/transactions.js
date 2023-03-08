@@ -22,7 +22,7 @@ class TransactionController {
             }),
         organization: req.params.organizationId,
         ...(type!=='all' && {type})
-      }).populate(['account','category']);
+      }).populate(['account','category','accountType']);
 
       res.send(transactions);
     } catch (error) {
