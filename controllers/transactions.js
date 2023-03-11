@@ -5,7 +5,7 @@ const { subDays } = require('date-fns');
 
 class TransactionController {
   static async getTransactions (req, res) {
-    const { frequency, selectedRange , type } = req.query;
+    const { frequency, selectedRange , type, account, category, accountType } = req.query;
     try {
       const transactions = await Transaction.find({
         ...(frequency !== "custom"
@@ -21,6 +21,9 @@ class TransactionController {
               },
             }),
         organization: req.params.organizationId,
+        ...(account && {account}),
+        ...(accountType && {accountType}),
+        ...(category && {category}),
         ...(type!=='all' && {type})
       }).populate(['account','category','accountType']);
 
