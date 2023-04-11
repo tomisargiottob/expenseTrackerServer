@@ -1,5 +1,5 @@
-const Organization = require('../models/Organization');
-const Category = require('../models/Category');
+import Organization from '../models/Organization';
+import Category from '../models/Category';
 
 class CategoriesController {
     static async createCategory (req, res) {
@@ -63,4 +63,4 @@ class CategoriesController {
     }
 }
 
-module.exports = CategoriesController
+export default CategoriesController

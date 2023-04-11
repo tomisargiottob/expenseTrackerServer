@@ -1,7 +1,6 @@
-const Organization = require('../models/Organization');
-const Account = require('../models/Account');
-const Transaction = require('../models/Transaction');
-
+import Organization from '../models/Organization';
+import Account from '../models/Account';
+import Transaction from '../models/Transaction';
 
 class AccountsController {
     static async createAccount (req, res) {
@@ -70,4 +69,4 @@ class AccountsController {
     }
 }
 
-module.exports = AccountsController
+export default AccountsController

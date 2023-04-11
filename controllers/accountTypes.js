@@ -1,6 +1,6 @@
-const Organization = require('../models/Organization');
-const AccountType = require('../models/AccountType');
-const Transaction = require('../models/Transaction');
+import Organization from '../models/Organization';
+import AccountType from '../models/AccountType';
+import Transaction from '../models/Transaction';
 
 
 class AccountTypesController {
@@ -70,4 +70,4 @@ class AccountTypesController {
     }
 }
 
-module.exports = AccountTypesController
+export default AccountTypesController

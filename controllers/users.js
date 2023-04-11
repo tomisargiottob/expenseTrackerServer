@@ -1,7 +1,9 @@
-const User = require('../models/User');
-const Organization = require('../models/Organization');
-const bcrypt = require('bcryptjs');
+import User from '../models/User';
+import Organization from '../models/Organization';
+import bcrypt from 'bcryptjs';
+import Util from '../utils/auth';
 
+const util = new Util()
 class UserController {
     static async loginUser (req, res) {
         try {
@@ -13,8 +15,7 @@ class UserController {
       
           if (!bcrypt.compareSync(req.body.password, user.password))
             throw new Error('Check your credentials');
-          const organization = await Organization.findOne({_id: user.organization})
-          res.send({user, organization});
+          res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id })});
         } catch (error) {
           res.status(401).json({ message: error.message });
         }
@@ -40,6 +41,18 @@ class UserController {
             res.status(500).json(error);
         }
     }
+    static async getUserData(req, res) {
+      try {
+        let tokenData = await util.decodeJwt(req.header('Authorization'))
+        const user = await User.findOne({_id: tokenData.user.id})
+        if(!user) {
+          return res.status(401).json({message: 'User does not exist'})
+        }
+        res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id })});
+      } catch (err) {
+        res.status(500).json(err)
+      }
+    }
 }
 
-module.exports = UserController
+export default UserController

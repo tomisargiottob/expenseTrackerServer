@@ -1,7 +1,6 @@
-const bcrypt = require('bcryptjs')
-
-const Organization = require('../models/Organization');
-const User = require('../models/Organization');
+import bcrypt from 'bcryptjs'
+import Organization from '../models/Organization';
+import User from '../models/Organization';
 
 class OrganizationController {
     static async addUser (req, res) {
@@ -27,4 +26,4 @@ class OrganizationController {
       }
 }
 
-module.exports = OrganizationController
+export default OrganizationController

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Hello world!</title>
+</head>
+
+<body>
+  <div>
+    <div class="borderDiv originalLabel">
+      ORIGINAL
+    </div>
+    <div class="invoiceHeaderContainer">
+      <div class="invoiceTypeContainer">
+        <div class="invoiceType">{{invoiceCode}}</div>
+        <div>COD. {{cod}}</div>
+      </div>
+      <div class="invoiceHeaderContent">
+        <div class="fromName">{{fullname}}</div>
+          <div class="inf" style="padding-top: 10px;">
+            <div class="label">Razón Social: <span class="data">{{fullname}}</span></div>
+            <div class="label">Domicilio Comercial: <span class="data">{{address}}</span></div>
+            <div class="label">Condición frente al IVA: Responsable Monotributo</div>
+          </div>
+      </div>
+      <div class="invoiceHeaderContent">
+        <div class="fromName">{{invoiceType}}</div>
+        <div class="inf">
+          <div class="label">Punto de Venta: {{salePoint}} - Comp. Nro: {{number}}</div>
+          <div class="label">Fecha Emisión: <span class="data">{{date}}</span></div>
+          <div class="label">CUIT: <span class="data">{{cuit}}</span></div>
+          <div class="label">Ingresos Brutos: <span class="data">{{cuit}}</span></div>
+          <div class="label">Inicio de Actividades: <span class="data">{{initAct}}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="borderDiv periodContainer">
+      <div class="label">Periodo Facturado Desde: <span class="data">{{perdes}}</span></div>
+      <div class="label" style="margin-left: 290px;">Periodo Facturado Hasta: <span class="data">{{perhas}}</span></div>
+    </div>
+    <div class="borderDiv">
+      <div class="destinataryInfoContainer">
+        <div class="label" style="line-height: 16px; font-size: 12px;">CUIT: <span class="data">{{destinataryDocument}}</span></div>
+        <div class="label" style="line-height: 16px; font-size: 12px; margin-left: 100px;">Apellido y Nombre / Razon Social: <span class="data">{{destinatary}}</span></div>
+      </div>
+      <div class="destinataryInfoContainer">
+        <div class="label" style="line-height: 16px; font-size: 12px;">Condición frente al IVA: <span class="data">Consumidor Final</span></div>
+        <div class="label" style="line-height: 16px; font-size: 12px; margin-left: 50px;">Domicilio: <span class="data"> - </span></div>
+      </div>
+      <div class="destinataryInfoContainer">
+        <div class="label" style="line-height: 16px; font-size: 12px;">Condición de venta: <span class="data">Otras</span></div>
+      </div>
+    </div>
+    <div class="tableContainer">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto / Servicio</th>
+            <th>Cantidad</th>
+            <th>U. Medida</th>
+            <th>Precio Unit.</th>
+            <th>% Bonif</th>
+            <th>Imp. Bonif.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>{{description}}</td>
+            <td>{{units}}</td>
+            <td>unidades</td>
+            <td>{{unitValue}}</td>
+            <td>0,00</td>
+            <td>0,00</td>
+            <td>{{total}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="borderDiv invoiceTotal">
+      <div class="label">Subtotal: $ {{total}}</div>
+      <div class="label">Importe otros tributos: $ {{total}}</div>
+      <div class="label">Importe total: $ {{total}}</div>
+    </div>
+    <div class="invoiceTotal">
+      <div class="label" style="font-size: 12px;">CAE N°: {{cae}}</div>
+    </div>
+  </div>
+</body>
+<style>
+  body{
+    font-family: Arial, Helvetica, sans-serif
+  }
+
+  .borderDiv{
+    border: 1px solid black;
+  }
+
+  .originalLabel{
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    display: -webkit-flex;
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .invoiceTypeContainer{
+    font-weight: bold;
+    border: 1px solid black;
+    padding: 15px 5px;
+    position: absolute;
+    text-align: center;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100px;
+    background-color: white;
+  }
+
+  .invoiceType{
+    font-size: 20px;
+  }
+
+  .invoiceHeaderContent{
+    width: 50%;
+    padding: 35px 0px 5px 25px;
+    display: flex;
+    display: -webkit-flex;
+    justify-content: center;
+    -webkit-box-pack: center;
+    flex-direction: column;
+    -webkit-flex-direction: column;
+    -webkit-gap: 8px;
+    gap: 8px;
+    border: 1px solid black;
+  }
+
+  .fromName{
+    font-weight: bold;
+    font-size: 25px;
+    text-align: center;
+    width: 80%;
+  }
+
+  .label {
+    font-weight: bold;
+  }
+
+  .label .data{
+    font-weight: lighter;
+  }
+
+  .inf {
+    padding-left: 15px;
+    display: flex;
+    display: -webkit-flex;
+    line-height: 16px;
+    flex-direction: column;
+    -webkit-flex-direction: column;
+    flex-flow: column;
+    -webkit-flex-flow: column;
+    font-size: 12px;
+    padding-top: 30px;
+  }
+
+  .invoiceHeaderContainer{
+    display: flex;
+    display: -webkit-flex;
+    position: relative;
+  }
+
+  .periodContainer{
+    padding: 10px;
+    line-height: 16px;
+    font-size: 12px;
+    display: flex;
+    display: -webkit-flex;
+  }
+
+  .destinataryInfoContainer{
+    display: flex;
+    display: -webkit-flex;
+    padding: 10px;
+    padding-top: 2px;
+    gap: 150px;
+  }
+
+  .tableContainer{
+    height: 200px;
+  }
+
+  table{
+    width: 100%;
+    text-align: right;
+    font-size: 12px;
+  }
+
+  table thead tr th {
+    outline: 1px solid black;
+    padding: 5px 5px;
+    background-color: rgb(201, 201, 201);
+  }
+
+  table tbody tr td{
+    padding-top: 10px 10px;
+  }
+
+  .invoiceTotal{
+    padding: 15px;
+    text-align: right;
+    font-size: 12px;
+  }
+</style>
+</html>

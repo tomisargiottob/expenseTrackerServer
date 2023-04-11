@@ -1,10 +1,14 @@
-const express = require('express');
-const TransactionController = require('../controllers/transactions')
-const OrganizationController = require('../controllers/organizations');
-const CategoriesController = require('../controllers/categories');
-const AccountsController = require('../controllers/accounts');
-const AccountTypesController = require('../controllers/accountTypes');
-
+import express from 'express';
+import TransactionController from '../controllers/transactions'
+import OrganizationController from '../controllers/organizations';
+import CategoriesController from '../controllers/categories';
+import AccountsController from '../controllers/accounts';
+import AccountTypesController from '../controllers/accountTypes';
+import AFIPController from '../controllers/invoicer/AFIPController';
+import CuitController from '../controllers/invoicer/cuit';
+import getUser from '../middlewares/authMiddleware';
+import InvoiceController from '../controllers/invoicer/invoices';
+import BalanceController from '../controllers/invoicer/balance';
 
 const router = express.Router();
 
@@ -38,4 +42,24 @@ router.delete('/organizations/:organizationId/accountTypes/:id', AccountTypesCon
 router.put('/organizations/:organizationId/accountTypes/:id', AccountTypesController.updateAccountType);
 router.get('/organizations/:organizationId/accountTypes', AccountTypesController.getAccountTypes);
 
-module.exports = router;
+// Invoicer
+router.post('/organizations/:organizationId/cuits',getUser, CuitController.addCuit)
+router.get('/organizations/:organizationId/cuits',getUser, CuitController.getAllCuits)
+
+router.get('/organizations/:organizationId/cuits/:id',getUser, CuitController.getCuit)
+router.get('/organizations/:organizationId/cuits/:id/login',getUser, AFIPController.getCMSToken)
+
+router.post('/organizations/:organizationId/cuits/:id/invoices',getUser, InvoiceController.createInvoice)
+router.get('/organizations/:organizationId/cuits/:id/invoices',getUser, InvoiceController.getInvoices)
+
+router.get('/organizations/:organizationId/cuits/:id/balances',getUser, BalanceController.getAllBalances)
+router.post('/organizations/:organizationId/cuits/:id/balances',getUser, BalanceController.batchBalanceCreate)
+
+
+router.post('/organizations/:organizationId/cuits/:id/batchInvoice',getUser, InvoiceController.createBatchInvoice)
+router.get('/organizations/:organizationId/cuits/:id/invoiceNumber',getUser, AFIPController.getNextInvoiceNumber)
+
+
+
+
+export default router;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose'
 
 const accountSchema = new mongoose.Schema({
   organization : { type: String, required: true, ref: 'Organizations'},
@@ -7,4 +7,4 @@ const accountSchema = new mongoose.Schema({
 
 const accountModel = mongoose.model("Accounts", accountSchema);
 
-module.exports = accountModel;
+export default accountModel;

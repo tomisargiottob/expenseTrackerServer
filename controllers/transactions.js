@@ -1,7 +1,5 @@
-const Transaction = require("../models/Transaction");
-const { subDays } = require('date-fns');
-
-
+import Transaction from "../models/Transaction";
+import { subDays } from 'date-fns';
 
 class TransactionController {
   static async getTransactions (req, res) {
@@ -59,4 +57,4 @@ class TransactionController {
   }
 }
 
-module.exports = TransactionController
+export default TransactionController
