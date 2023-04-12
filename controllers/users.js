@@ -33,7 +33,7 @@ class UserController {
             if(existentUser) throw new Error('User already registered in an Organization')
             const newOrg = new Organization({name: organization});
             await newOrg.save();
-            const user = new User({name, email, role: 'admin', organization: newOrg._id});
+            const user = new User({name, email, role: 'admin', organization: newOrg._id, maxCuits: 5});
             user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
             await user.save();
             res.send('User Registered Successfully');
