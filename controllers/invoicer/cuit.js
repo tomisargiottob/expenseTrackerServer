@@ -14,10 +14,15 @@ class CuitController {
                 certificate,
                 privateKey
             } = req.body;
-            await CuitService.create(res.locals.user.organization, {
+            const cuits = await CuitService.count(res.locals.user.organization)
+            if(cuits + 1 > res.locals.user.maxCuits ) {
+                return res.status(400).json({message:'Se ha alcanzado el numero maximo de cuits del plan'})
+            }
+            await CuitService.create({
                 cuit,
                 address,
                 fullname,
+                organization: res.locals.user.organization,
                 initAct,
                 invoiceType,
                 salePoint,
@@ -53,6 +58,19 @@ class CuitController {
                 return res.status(404).json({message: err.message })
             }
             return res.status(500).json({message: 'Could not search cuit to user'})
+        }
+    }
+    static async removeCuit(req,res) {
+        try {
+            const {id} = req.params
+            await CuitService.delete(res.locals.user.organization, id)
+            return res.status(204).json({message: 'Cuit successfully removed'})
+        } catch (err) {
+            console.log(err)
+            if(err instanceof errors.NotFoundError) {
+                return res.status(404).json({message: err.message })
+            }
+            return res.status(500).json({message: 'Could not remove cuit from user'})
         }
     }
 }

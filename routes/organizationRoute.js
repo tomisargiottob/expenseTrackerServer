@@ -47,6 +47,8 @@ router.post('/organizations/:organizationId/cuits',getUser, CuitController.addCu
 router.get('/organizations/:organizationId/cuits',getUser, CuitController.getAllCuits)
 
 router.get('/organizations/:organizationId/cuits/:id',getUser, CuitController.getCuit)
+router.delete('/organizations/:organizationId/cuits/:id',getUser, CuitController.removeCuit)
+
 router.get('/organizations/:organizationId/cuits/:id/login',getUser, AFIPController.getCMSToken)
 
 router.post('/organizations/:organizationId/cuits/:id/invoices',getUser, InvoiceController.createInvoice)

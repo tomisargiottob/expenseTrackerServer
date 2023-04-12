@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         ref: 'Organization'
+    },
+    maxCuits: {
+        type: Number,
+        required: true,
     }
 })
 
