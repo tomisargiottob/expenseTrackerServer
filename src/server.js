@@ -14,6 +14,13 @@ app.use(
 )
 app.use('/api/users/' , userRouter)
 app.use('/api' , organizationsRouter)
+app.get('/',(req,res) => {
+  try {
+    res.status(200).json({ message: 'Bienvenido al api de Facturama'})
+  } catch (err) {
+    res.status(500).json({ message: 'El servidor no responde'})
+  }
+})
 
 const port = process.env.PORT || 5000
 app.listen(port, () => console.log(`Node JS Server started at port ${port}!`))
