@@ -8,7 +8,7 @@ class UserController {
     static async loginUser (req, res) {
         try {
           const user = await User.findOne({
-            email: req.body.email,
+            email: req.body.email.toLowerCase(),
           });
       
           if (!user) throw new Error('Email is not registered');
@@ -29,11 +29,11 @@ class UserController {
                 email,
                 password,
             } = req.body
-            const existentUser = await User.findOne({email})
+            const existentUser = await User.findOne({email: email.toLowerCase()})
             if(existentUser) throw new Error('User already registered in an Organization')
             const newOrg = new Organization({name: organization});
             await newOrg.save();
-            const user = new User({name, email, role: 'admin', organization: newOrg._id, maxCuits: 5});
+            const user = new User({name, email: email.toLowerCase(), role: 'admin', organization: newOrg._id, maxCuits: 5});
             user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
             await user.save();
             res.send('User Registered Successfully');
