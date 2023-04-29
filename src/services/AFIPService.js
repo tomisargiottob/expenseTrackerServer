@@ -71,8 +71,13 @@ class AFIPService {
       p7.sign();
       const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
       const signedTRA = Buffer.from(bytes, "binary").toString("base64");
-      
-      const soapClientOptions = { disableCache:true, endpoint: process.env.AFIP_LOGIN_ENDPOINT };
+      let endpoint;
+      if (process.env.AFIP_ENVIRONMENT === 'testing') {
+        endpoint = process.env.AFIP_LOGIN_ENDPOINT_TESTING 
+      } else {
+        endpoint = process.env.AFIP_LOGIN_ENDPOINT
+      }
+      const soapClientOptions = { disableCache:true, endpoint };
       const WSAA_WSDL = resolve(__dirname, 'wsaa.wsdl');
 
       const soapClient = await createClientAsync(WSAA_WSDL, soapClientOptions);
@@ -206,7 +211,11 @@ class AFIPService {
           WSFE_WSDL = resolve(__dirname,'wsdl_production', 'wsfe.wsdl');
         }
         this.soapClient = await createClientAsync(WSFE_WSDL, soapClientOptions);
-        this.soapClient.setEndpoint(process.env.AFIP_SERVICE);
+        if(process.env.AFIP_ENVIRONMENT === 'testing') {
+          this.soapClient.setEndpoint(process.env.AFIP_SERVICE_TESTING);
+        } else {
+          this.soapClient.setEndpoint(process.env.AFIP_SERVICE);
+        }
       }
     }
 
