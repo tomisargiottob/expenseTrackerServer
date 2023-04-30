@@ -9,7 +9,7 @@ class CuitController {
                 address,
                 fullname,
                 initAct,
-                invoiceType,
+                registerType,
                 salePoint,
                 certificate,
                 privateKey
@@ -24,7 +24,7 @@ class CuitController {
                 fullname,
                 organization: res.locals.user.organization,
                 initAct,
-                invoiceType,
+                registerType,
                 salePoint,
                 certificate,
                 privateKey

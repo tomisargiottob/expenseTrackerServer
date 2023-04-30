@@ -139,7 +139,7 @@ class AFIPService {
         if(creditTypes.includes(data.invoiceType)) {
           parsedData['CbtesAsoc'] = [ // (Opcional) Comprobantes asociados
             {
-              'Tipo' 		: invoiceTypes[cuit.invoiceType], // Tipo de comprobante (ver tipos disponibles) 
+              'Tipo' 		: invoiceTypes[data.invoiceType], // Tipo de comprobante (ver tipos disponibles) 
               'PtoVta' 	: cuit.salePoint, // Punto de venta
               'Nro' 		: data.asociatedInvoice, // Numero de comprobante
             }

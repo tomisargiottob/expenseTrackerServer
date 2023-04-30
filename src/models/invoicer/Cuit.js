@@ -9,7 +9,7 @@ const cuitSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    invoiceType : {
+    registerType : {
         type : String,
         required : true
     },
