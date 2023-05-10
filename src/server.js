@@ -10,6 +10,7 @@ app.use(
   cors({
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     exposedHeaders: ['Total-Count', 'Total-Pages', 'Authorization'],
+    origin: ['https://app.facturama.com.ar', 'http://app.facturama.com.ar', 'http://localhost:3000'],
   }),
 )
 app.use('/api/users/' , userRouter)
