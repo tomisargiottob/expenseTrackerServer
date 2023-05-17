@@ -41,6 +41,7 @@ const cuitSchema = new mongoose.Schema({
     vat: {
         type: Number,
         required: false,
+        default: 21
     },
     certificate: {
         type: String,
