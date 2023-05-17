@@ -12,7 +12,9 @@ class CuitController {
                 registerType,
                 salePoint,
                 certificate,
-                privateKey
+                privateKey,
+                staticVat,
+                vat,
             } = req.body;
             const cuits = await CuitService.count(res.locals.user.organization)
             if(cuits + 1 > res.locals.user.maxCuits ) {
@@ -27,7 +29,9 @@ class CuitController {
                 registerType,
                 salePoint,
                 certificate,
-                privateKey
+                privateKey,
+                staticVat,
+                vat,
             })
             return res.status(200).json({message: 'Cuit successfully added'})
         } catch (err) {

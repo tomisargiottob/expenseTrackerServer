@@ -34,6 +34,14 @@ const cuitSchema = new mongoose.Schema({
         required: true,
         ref: 'Organization'
     },
+    staticVat: {
+        type: Boolean,
+        required: true,
+    },
+    vat: {
+        type: Number,
+        required: false,
+    },
     certificate: {
         type: String,
         required: true,
