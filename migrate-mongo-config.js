@@ -9,7 +9,7 @@ if (process.env.DATABASE_ENV === 'develop') {
 } else {
     url = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.gifny.mongodb.net`
 }
-console.log(url)
+
 const config = {
     mongodb: {
         // TODO Change (or review) the url to your MongoDB:
