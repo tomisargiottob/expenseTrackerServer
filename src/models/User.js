@@ -22,10 +22,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         ref: 'Organization'
     },
-    maxCuits: {
-        type: Number,
-        required: true,
-    }
 })
 
 const usermodel = mongoose.model('Users' , userSchema)
