@@ -1,3 +1,4 @@
+import organizationModel from '../../models/Organization';
 import CuitService from '../../services/cuitService';
 import errors from 'common-errors'
 
@@ -17,7 +18,8 @@ class CuitController {
                 vat,
             } = req.body;
             const cuits = await CuitService.count(res.locals.user.organization)
-            if(cuits + 1 > res.locals.user.maxCuits ) {
+            const organization = await organizationModel.findById(res.locals.user.organization)
+            if(cuits + 1 > organization.maxCuits && !organization.freeAccount) {
                 return res.status(400).json({message:'Se ha alcanzado el numero maximo de cuits del plan'})
             }
             await CuitService.create({
