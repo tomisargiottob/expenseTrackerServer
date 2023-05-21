@@ -2,8 +2,10 @@ import User from '../models/User';
 import Organization from '../models/Organization';
 import bcrypt from 'bcryptjs';
 import Util from '../utils/auth';
+import PaymentService from '../services/paymentService/paymentService';
 
 const util = new Util()
+const paymentService = new PaymentService()
 class UserController {
     static async loginUser (req, res) {
         try {
@@ -15,8 +17,11 @@ class UserController {
       
           if (!bcrypt.compareSync(req.body.password, user.password))
             throw new Error('Check your credentials');
-          res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id })});
+          
+          const organizationStatus = await paymentService.getSuscriptionData(user.organization)
+          res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id }), ...organizationStatus});
         } catch (error) {
+          console.log(error.message)
           res.status(401).json({ message: error.message });
         }
       }
@@ -31,9 +36,9 @@ class UserController {
             } = req.body
             const existentUser = await User.findOne({email: email.toLowerCase()})
             if(existentUser) throw new Error('User already registered in an Organization')
-            const newOrg = new Organization({name: organization});
+            const newOrg = new Organization({name: organization, maxCuits: 5, freeAccount: false});
             await newOrg.save();
-            const user = new User({name, email: email.toLowerCase(), role: 'admin', organization: newOrg._id, maxCuits: 5});
+            const user = new User({name, email: email.toLowerCase(), role: 'admin', organization: newOrg._id});
             user.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
             await user.save();
             res.send('User Registered Successfully');
@@ -48,9 +53,10 @@ class UserController {
         if(!user) {
           return res.status(401).json({message: 'User does not exist'})
         }
-        res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id })});
+        const organizationStatus = await paymentService.getSuscriptionData(user.organization)
+        res.send({user: {...user.toJSON(), id: user._id}, token: util.generateJwtToken({ id: user._id }), ...organizationStatus});
       } catch (err) {
-        res.status(500).json(err)
+        res.status(500).json({message: err.message})
       }
     }
 }
