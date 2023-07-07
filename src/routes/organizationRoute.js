@@ -9,11 +9,12 @@ import CuitController from '../controllers/invoicer/cuit';
 import getUser from '../middlewares/authMiddleware';
 import InvoiceController from '../controllers/invoicer/invoices';
 import BalanceController from '../controllers/invoicer/balance';
+import PaymentController from '../controllers/payments';
 
 const router = express.Router();
+const paymentController = new PaymentController()
 
 router.post('/organizations/:id/users', OrganizationController.addUser);
-
 
 // Transactions
 router.post("/organizations/:organizationId/transactions", TransactionController.createTransaction);
@@ -45,6 +46,10 @@ router.get('/organizations/:organizationId/accountTypes', AccountTypesController
 // Invoicer
 router.post('/organizations/:organizationId/cuits',getUser, CuitController.addCuit)
 router.get('/organizations/:organizationId/cuits',getUser, CuitController.getAllCuits)
+
+router.post('/organizations/:organizationId/suscription', getUser, paymentController.createPayment.bind(paymentController))
+router.delete('/organizations/:organizationId/suscription', getUser, paymentController.pauseSuscription.bind(paymentController))
+
 
 router.get('/organizations/:organizationId/cuits/:id',getUser, CuitController.getCuit)
 router.delete('/organizations/:organizationId/cuits/:id',getUser, CuitController.removeCuit)

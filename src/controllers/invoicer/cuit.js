@@ -1,3 +1,4 @@
+import organizationModel from '../../models/Organization';
 import CuitService from '../../services/cuitService';
 import errors from 'common-errors'
 
@@ -9,13 +10,16 @@ class CuitController {
                 address,
                 fullname,
                 initAct,
-                invoiceType,
+                registerType,
                 salePoint,
                 certificate,
-                privateKey
+                privateKey,
+                staticVat,
+                vat,
             } = req.body;
             const cuits = await CuitService.count(res.locals.user.organization)
-            if(cuits + 1 > res.locals.user.maxCuits ) {
+            const organization = await organizationModel.findById(res.locals.user.organization)
+            if(cuits + 1 > organization.maxCuits && !organization.freeAccount) {
                 return res.status(400).json({message:'Se ha alcanzado el numero maximo de cuits del plan'})
             }
             await CuitService.create({
@@ -24,10 +28,12 @@ class CuitController {
                 fullname,
                 organization: res.locals.user.organization,
                 initAct,
-                invoiceType,
+                registerType,
                 salePoint,
                 certificate,
-                privateKey
+                privateKey,
+                staticVat,
+                vat,
             })
             return res.status(200).json({message: 'Cuit successfully added'})
         } catch (err) {

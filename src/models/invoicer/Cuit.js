@@ -9,7 +9,7 @@ const cuitSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    invoiceType : {
+    registerType : {
         type : String,
         required : true
     },
@@ -33,6 +33,15 @@ const cuitSchema = new mongoose.Schema({
         type: String,
         required: true,
         ref: 'Organization'
+    },
+    staticVat: {
+        type: Boolean,
+        required: true,
+    },
+    vat: {
+        type: Number,
+        required: false,
+        default: 21
     },
     certificate: {
         type: String,

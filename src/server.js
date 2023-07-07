@@ -6,12 +6,7 @@ import userRouter from './routes/usersRoute'
 import organizationsRouter from './routes/organizationRoute'
 import cors from 'cors';
 
-app.use(
-  cors({
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    exposedHeaders: ['Total-Count', 'Total-Pages', 'Authorization'],
-  }),
-)
+app.use(cors())
 app.use('/api/users/' , userRouter)
 app.use('/api' , organizationsRouter)
 app.get('/',(req,res) => {

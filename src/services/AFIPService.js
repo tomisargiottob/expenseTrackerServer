@@ -22,6 +22,15 @@ const xmlParser = new xml2js.Parser({
 	tagNameProcessors: [key => key.replace('soapenv:', '')]
 });
 
+const vatCodes = {
+  0: 3,
+  10.5: 4,
+  21: 5,
+  27: 6,
+  5: 8,
+  2.5: 9
+}
+
 class AFIPService {
   constructor() {
   }
@@ -71,8 +80,13 @@ class AFIPService {
       p7.sign();
       const bytes = forge.asn1.toDer(p7.toAsn1()).getBytes();
       const signedTRA = Buffer.from(bytes, "binary").toString("base64");
-      
-      const soapClientOptions = { disableCache:true, endpoint: process.env.AFIP_LOGIN_ENDPOINT };
+      let endpoint;
+      if (process.env.AFIP_ENVIRONMENT === 'testing') {
+        endpoint = process.env.AFIP_LOGIN_ENDPOINT_TESTING 
+      } else {
+        endpoint = process.env.AFIP_LOGIN_ENDPOINT
+      }
+      const soapClientOptions = { disableCache:true, endpoint };
       const WSAA_WSDL = resolve(__dirname, 'wsaa.wsdl');
 
       const soapClient = await createClientAsync(WSAA_WSDL, soapClientOptions);
@@ -90,6 +104,28 @@ class AFIPService {
       return parsedResponse
     }
 
+    getVatTypes(vatTotals, cuit) {
+      let totalIva = 0
+      let totalAmount = 0
+      const vats = vatTotals.map(({total, type}) => {
+        const vatType = (type || cuit.vat) / 100
+        const ivaImport = ((total / (1+vatType)) * vatType).toFixed(2)
+        const netAmount = (total / (1+vatType)).toFixed(2)
+        totalIva += +ivaImport
+        totalAmount += +netAmount
+        return {
+          'Id' 		: vatCodes[type || cuit.vat], // Id del tipo de IVA (ver tipos disponibles) 
+          'BaseImp' 	: netAmount, // Base imponible
+          'Importe' 	: ivaImport // Importe 
+        }
+      })
+      return {
+        totalIva,
+        totalAmount,
+        vats,
+      }
+    }
+
     async createAFIPInvoice(cuitId, organization, data) {
       try {
         const cuit = await cuitModel.findOne({organization, _id: cuitId})
@@ -99,43 +135,38 @@ class AFIPService {
         const authorization = await this.getCuitToken(cuitId, organization)
         data.number = parseInt(data.number)
         const invoice = await invoiceModel.create({...data, cuit: cuitId})
+        const {totalAmount, totalIva, vats } = this.getVatTypes([{total: data.total, type: cuit.vat }],cuit)
         const parsedData = {
           'CantReg' 		: 1,
           'PtoVta' 		: cuit.salePoint,
-          'CbteTipo' 		: invoiceTypes[data.invoiceType], // Tipo de comprobante (ver tipos disponibles) 
+          'CbteTipo' 		: invoiceTypes[data.invoiceType],
           'Concepto' 		: 3,
-          'DocTipo' 		: data.destinataryDocumentType, // Tipo de documento del comprador (ver tipos disponibles)
+          'DocTipo' 		: data.destinataryDocumentType,
           'DocNro' 		: parseInt(data.destinataryDocument), // Numero de documento del comprador
           'CbteDesde' 	: data.number, // Numero de comprobante o numero del primer comprobante en caso de ser mas de uno
           'CbteHasta' 	: data.number, // Numero de comprobante o numero del ultimo comprobante en caso de ser mas de uno
           'CbteFch' 		: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
           'ImpTotal' 		: data.total, // Importe total del comprobante
-          'ImpTotConc' 	: 0, // Importe neto no gravado
-          'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? data.total : (data.total / 1.21).toFixed(2), // Importe neto gravado
-          'ImpOpEx' 		: 0, // Importe exento de IVA
-          'ImpIVA' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? '0' : ((data.total / 1.21) *0.21).toFixed(2), //Importe total de IVA
-          'ImpTrib' 		: 0, //Importe total de tributos
+          'ImpTotConc' 	: 0,
+          'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? data.total : totalAmount, // Importe neto gravado
+          'ImpOpEx' 		: 0,
+          'ImpIVA' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? '0' : totalIva, //Importe total de IVA
+          'ImpTrib' 		: 0,
           'FchServDesde' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de inicio del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
           'FchServHasta' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de fin del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
           'FchVtoPago' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de vencimiento del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
-          'MonId' 		: 'PES', //Tipo de moneda usada en el comprobante (ver tipos disponibles)('PES' para pesos argentinos) 
-          'MonCotiz' 		: 1, // Cotización de la moneda usada (1 para pesos argentinos)  
+          'MonId' 		: 'PES', 
+          'MonCotiz' 		: 1, 
           ...(data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? {} :
           {
-            'Iva': [ // (Opcional) Alícuotas asociadas al comprobante
-              {
-                'Id' 		: 5, // Id del tipo de IVA (ver tipos disponibles) 
-                'BaseImp' 	: (data.total / 1.21).toFixed(2), // Base imponible
-                'Importe' 	: ((data.total / 1.21) * 0.21).toFixed(2) // Importe 
-              }
-            ], 
+            'Iva':  vats
           }),
         };
         if(creditTypes.includes(data.invoiceType)) {
           parsedData['CbtesAsoc'] = [ // (Opcional) Comprobantes asociados
             {
-              'Tipo' 		: invoiceTypes[cuit.invoiceType], // Tipo de comprobante (ver tipos disponibles) 
-              'PtoVta' 	: cuit.salePoint, // Punto de venta
+              'Tipo' 		: invoiceTypes[data.invoiceType], // Tipo de comprobante (ver tipos disponibles) 
+              'PtoVta' 	: cuit.salePoint,
               'Nro' 		: data.asociatedInvoice, // Numero de comprobante
             }
           ]
@@ -206,7 +237,11 @@ class AFIPService {
           WSFE_WSDL = resolve(__dirname,'wsdl_production', 'wsfe.wsdl');
         }
         this.soapClient = await createClientAsync(WSFE_WSDL, soapClientOptions);
-        this.soapClient.setEndpoint(process.env.AFIP_SERVICE);
+        if(process.env.AFIP_ENVIRONMENT === 'testing') {
+          this.soapClient.setEndpoint(process.env.AFIP_SERVICE_TESTING);
+        } else {
+          this.soapClient.setEndpoint(process.env.AFIP_SERVICE);
+        }
       }
     }
 
