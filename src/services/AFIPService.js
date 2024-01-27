@@ -31,7 +31,6 @@ function sumObjectsById(objects) {
 
   objects.forEach(obj => {
     const { Id, BaseImp, Importe } = obj;
-    console.log(BaseImp)
     if (!result[Id]) {
       result[Id] = { Id, BaseImp: +BaseImp, Importe: +Importe };
     } else {
@@ -192,6 +191,7 @@ class AFIPService {
             'Iva':  vats
           }),
         };
+        console.log(parsedData)
         if(creditTypes.includes(data.invoiceType)) {
           parsedData['CbtesAsoc'] = [ // (Opcional) Comprobantes asociados
             {
