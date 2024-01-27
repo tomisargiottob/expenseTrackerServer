@@ -22,6 +22,33 @@ const xmlParser = new xml2js.Parser({
 	tagNameProcessors: [key => key.replace('soapenv:', '')]
 });
 
+function roundDecimals(number) {
+  return +Math.round(+number * 100) /100
+}
+
+function sumObjectsById(objects) {
+  const result = {};
+
+  objects.forEach(obj => {
+    const { Id, BaseImp, Importe } = obj;
+    console.log(BaseImp)
+    if (!result[Id]) {
+      result[Id] = { Id, BaseImp: +BaseImp, Importe: +Importe };
+    } else {
+      result[Id].BaseImp += +BaseImp;
+      result[Id].Importe += +Importe;
+    }
+  });
+
+  const summedObjects = Object.values(result);
+
+  return summedObjects.map((ivaValue) =>({
+    Id: ivaValue.Id,
+    BaseImp: roundDecimals(ivaValue.BaseImp),
+    Importe: roundDecimals(ivaValue.Importe),
+  }))
+}
+
 const vatCodes = {
   0: 3,
   10.5: 4,
@@ -107,21 +134,24 @@ class AFIPService {
     getVatTypes(vatTotals, cuit) {
       let totalIva = 0
       let totalAmount = 0
-      const vats = vatTotals.map(({total, type}) => {
-        const vatType = (type || cuit.vat) / 100
+      let vats = vatTotals.map(({units, unitValue, iva}) => {
+        const total = units * unitValue
+        const vatType = (iva || cuit.vat) / 100
         const ivaImport = ((total / (1+vatType)) * vatType).toFixed(2)
         const netAmount = (total / (1+vatType)).toFixed(2)
         totalIva += +ivaImport
         totalAmount += +netAmount
         return {
-          'Id' 		: vatCodes[type || cuit.vat], // Id del tipo de IVA (ver tipos disponibles) 
-          'BaseImp' 	: netAmount, // Base imponible
-          'Importe' 	: ivaImport // Importe 
+          'Id' 		: vatCodes[iva || cuit.vat], // Id del tipo de IVA (ver tipos disponibles) 
+          'BaseImp' 	: +netAmount, // Base imponible
+          'Importe' 	: +ivaImport // Importe 
         }
       })
+
+      vats = sumObjectsById(vats)
       return {
-        totalIva,
-        totalAmount,
+        totalIva: roundDecimals(totalIva),
+        totalAmount: roundDecimals(totalAmount),
         vats,
       }
     }
@@ -135,25 +165,25 @@ class AFIPService {
         const authorization = await this.getCuitToken(cuitId, organization)
         data.number = parseInt(data.number)
         const invoice = await invoiceModel.create({...data, cuit: cuitId})
-        const {totalAmount, totalIva, vats } = this.getVatTypes([{total: data.total, type: cuit.vat }],cuit)
+        const {totalAmount, totalIva, vats } = this.getVatTypes(data.items,cuit)
         const parsedData = {
           'CantReg' 		: 1,
           'PtoVta' 		: cuit.salePoint,
-          'CbteTipo' 		: invoiceTypes[data.invoiceType],
+          'CbteTipo' 		: invoiceTypes[data.invoiceType.toUpperCase()],
           'Concepto' 		: 3,
           'DocTipo' 		: data.destinataryDocumentType,
           'DocNro' 		: parseInt(data.destinataryDocument), // Numero de documento del comprador
           'CbteDesde' 	: data.number, // Numero de comprobante o numero del primer comprobante en caso de ser mas de uno
           'CbteHasta' 	: data.number, // Numero de comprobante o numero del ultimo comprobante en caso de ser mas de uno
           'CbteFch' 		: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-          'ImpTotal' 		: data.total, // Importe total del comprobante
+          'ImpTotal' 		: totalAmount + totalIva, // Importe total del comprobante
           'ImpTotConc' 	: 0,
-          'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? data.total : totalAmount, // Importe neto gravado
+          'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? totalAmount + totalIva : totalAmount, // Importe neto gravado
           'ImpOpEx' 		: 0,
           'ImpIVA' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? '0' : totalIva, //Importe total de IVA
           'ImpTrib' 		: 0,
-          'FchServDesde' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de inicio del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
-          'FchServHasta' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de fin del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
+          'FchServDesde' 	: convertDateToAAAAMMDD(data.startDate || data.date), // (Opcional) Fecha de inicio del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
+          'FchServHasta' 	: convertDateToAAAAMMDD(data.endDate || data.date), // (Opcional) Fecha de fin del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
           'FchVtoPago' 	: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha de vencimiento del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
           'MonId' 		: 'PES', 
           'MonCotiz' 		: 1, 
@@ -216,7 +246,7 @@ class AFIPService {
           throw new Error(errorReason)
         }
         await invoiceModel.updateOne({_id: invoice._id},{status: 'PROCESSED', cae: result.FECAESolicitarResult?.FeDetResp?.FECAEDetResponse[0]?.CAE})
-        await BalanceService.create({date: data.date, amount: creditTypes.includes(data.invoiceType) ? -data.total : data.total, cuit: cuitId })
+        await BalanceService.create({date: data.date, amount: creditTypes.includes(data.invoiceType) ? -(totalAmount + totalIva) : (totalAmount + totalIva), cuit: cuitId })
         return [invoice, cuit];
       } catch (err) {
         console.error(err.message)
