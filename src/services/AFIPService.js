@@ -57,6 +57,7 @@ const vatCodes = {
   2.5: 9
 }
 
+const DEBUG = false
 class AFIPService {
   constructor() {
   }
@@ -64,6 +65,15 @@ class AFIPService {
       const cuit = await cuitModel.findOne({_id: id, organization})
       if(!cuit){
         throw new errors.NotFoundError('Cuit no registrado en la empresa')
+      }
+      if(DEBUG) {
+        const date = new Date();
+        const expirationTime = new Date(date.getTime() + 600000)
+        return {
+          token: 'test',
+          cuit: cuit._id,
+          expirationTime
+        }
       }
       const cuitToken = await cuitTokenModel.findOne({cuit: cuit._id})
       if(cuitToken && new Date(cuitToken.expirationTime).getTime() > new Date().getTime()) {
@@ -133,22 +143,35 @@ class AFIPService {
     getVatTypes(vatTotals, cuit) {
       let totalIva = 0
       let totalAmount = 0
-      let vats = vatTotals.map(({units, unitValue, iva}) => {
+      let excentAmount = 0
+      let notTaxedAmount = 0
+      let vats = vatTotals.reduce((vatData, {units, unitValue, iva}) => {
         const total = units * unitValue
-        const vatType = (iva || cuit.vat) / 100
+        if (iva.toString().toLowerCase() === 'excento') {
+          excentAmount += total
+          return vatData
+        }
+        if (iva.toString().toLowerCase() === 'no gravado') {
+          notTaxedAmount += total
+          return vatData
+        }
+        const vatType = (iva ?? cuit.vat) / 100
         const ivaImport = ((total / (1+vatType)) * vatType).toFixed(2)
         const netAmount = (total / (1+vatType)).toFixed(2)
         totalIva += +ivaImport
         totalAmount += +netAmount
-        return {
-          'Id' 		: vatCodes[iva || cuit.vat], // Id del tipo de IVA (ver tipos disponibles) 
+        vatData.push({
+          'Id' 		: vatCodes[iva ?? cuit.vat], // Id del tipo de IVA (ver tipos disponibles) 
           'BaseImp' 	: +netAmount, // Base imponible
           'Importe' 	: +ivaImport // Importe 
-        }
-      })
+        })
+        return vatData
+      },[])
 
       vats = sumObjectsById(vats)
       return {
+        excentAmount,
+        notTaxedAmount,
         totalIva: roundDecimals(totalIva),
         totalAmount: roundDecimals(totalAmount),
         vats,
@@ -164,7 +187,7 @@ class AFIPService {
         const authorization = await this.getCuitToken(cuitId, organization)
         data.number = parseInt(data.number)
         const invoice = await invoiceModel.create({...data, cuit: cuitId})
-        const {totalAmount, totalIva, vats } = this.getVatTypes(data.items,cuit)
+        const {totalAmount, totalIva, vats, notTaxedAmount, excentAmount } = this.getVatTypes(data.items,cuit)
         const parsedData = {
           'CantReg' 		: 1,
           'PtoVta' 		: cuit.salePoint,
@@ -175,10 +198,10 @@ class AFIPService {
           'CbteDesde' 	: data.number, // Numero de comprobante o numero del primer comprobante en caso de ser mas de uno
           'CbteHasta' 	: data.number, // Numero de comprobante o numero del ultimo comprobante en caso de ser mas de uno
           'CbteFch' 		: convertDateToAAAAMMDD(data.date), // (Opcional) Fecha del comprobante (yyyymmdd) o fecha actual si es nulo
-          'ImpTotal' 		: totalAmount + totalIva, // Importe total del comprobante
-          'ImpTotConc' 	: 0,
+          'ImpTotal' 		: totalAmount + totalIva + notTaxedAmount + excentAmount, // Importe total del comprobante
+          'ImpTotConc' 	: notTaxedAmount, //importe no gravado
           'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? totalAmount + totalIva : totalAmount, // Importe neto gravado
-          'ImpOpEx' 		: 0,
+          'ImpOpEx' 		: excentAmount, // importe excento
           'ImpIVA' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? '0' : totalIva, //Importe total de IVA
           'ImpTrib' 		: 0,
           'FchServDesde' 	: convertDateToAAAAMMDD(data.startDate || data.date), // (Opcional) Fecha de inicio del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
@@ -191,7 +214,6 @@ class AFIPService {
             'Iva':  vats
           }),
         };
-        console.log(parsedData)
         if(creditTypes.includes(data.invoiceType)) {
           parsedData['CbtesAsoc'] = [ // (Opcional) Comprobantes asociados
             {
@@ -245,7 +267,7 @@ class AFIPService {
           await invoiceModel.updateOne({_id: invoice._id}, {status: 'REJECTED', reason: errorReason })
           throw new Error(errorReason)
         }
-        await invoiceModel.updateOne({_id: invoice._id},{status: 'PROCESSED', cae: result.FECAESolicitarResult?.FeDetResp?.FECAEDetResponse[0]?.CAE})
+        await invoiceModel.updateOne({_id: invoice._id},{status: 'PROCESSED', cae: result.FECAESolicitarResult?.FeDetResp?.FECAEDetResponse[0]?.CAE, caeExpirationDate: result.FECAESolicitarResult?.FeDetResp?.FECAEDetResponse[0]?.CAEFchVto})
         await BalanceService.create({date: data.date, amount: creditTypes.includes(data.invoiceType) ? -(totalAmount + totalIva) : (totalAmount + totalIva), cuit: cuitId })
         return [invoice, cuit];
       } catch (err) {
