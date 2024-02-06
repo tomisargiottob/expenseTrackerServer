@@ -36,6 +36,10 @@ const invoiceSchema = new mongoose.Schema({
         type: String,
         required: true,       
     },
+    destinataryAddress: {
+        type: String,
+        required: true,       
+    },
     items: [{
         description: {
             type: String,
@@ -46,7 +50,7 @@ const invoiceSchema = new mongoose.Schema({
             required: true, 
         },
         iva: {
-            type:Number,
+            type: String,
             required: true,
         },
         unitValue: {
@@ -63,6 +67,9 @@ const invoiceSchema = new mongoose.Schema({
     },
     cae: {
         type: Number,
+    },
+    caeExpirationDate: {
+        type: String,
     },
     version: {
         type: String
