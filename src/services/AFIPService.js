@@ -147,7 +147,7 @@ class AFIPService {
       let notTaxedAmount = 0
       let vats = vatTotals.reduce((vatData, {units, unitValue, iva}) => {
         const total = units * unitValue
-        if (iva.toString().toLowerCase() === 'excento') {
+        if (iva.toString().toLowerCase() === 'exento') {
           excentAmount += total
           return vatData
         }
@@ -201,7 +201,7 @@ class AFIPService {
           'ImpTotal' 		: totalAmount + totalIva + notTaxedAmount + excentAmount, // Importe total del comprobante
           'ImpTotConc' 	: notTaxedAmount, //importe no gravado
           'ImpNeto' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? totalAmount + totalIva : totalAmount, // Importe neto gravado
-          'ImpOpEx' 		: excentAmount, // importe excento
+          'ImpOpEx' 		: excentAmount, // importe exento
           'ImpIVA' 		: data.invoiceType === 'C' || data.invoiceType === 'NOTA_CREDITO_C' ? '0' : totalIva, //Importe total de IVA
           'ImpTrib' 		: 0,
           'FchServDesde' 	: convertDateToAAAAMMDD(data.startDate || data.date), // (Opcional) Fecha de inicio del servicio (yyyymmdd), obligatorio para Concepto 2 y 3
