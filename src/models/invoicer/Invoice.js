@@ -9,6 +9,12 @@ const invoiceSchema = new mongoose.Schema({
         type : Date,
         required : true
     },
+    startDate:{
+        type : Date,
+    },
+    endDate:{
+        type : Date,
+    },
     invoiceType : {
         type : String,
         required : true
@@ -30,22 +36,28 @@ const invoiceSchema = new mongoose.Schema({
         type: String,
         required: true,       
     },
-    description: {
+    destinataryAddress: {
         type: String,
-        required: true,
+        required: false,       
     },
-    units: {
-        type: Number,
-        required: true, 
-    },
-    unitValue: {
-        type: Number,
-        required: true,
-    },
-    total: {
-        type: String,
-        required: true,
-    },
+    items: [{
+        description: {
+            type: String,
+            required: true,
+        },
+        units: {
+            type: Number,
+            required: true, 
+        },
+        iva: {
+            type: String,
+            required: true,
+        },
+        unitValue: {
+            type: Number,
+            required: true,
+        },
+    }],
     status: {
         type: String,
         required: true,
@@ -56,6 +68,12 @@ const invoiceSchema = new mongoose.Schema({
     cae: {
         type: Number,
     },
+    caeExpirationDate: {
+        type: String,
+    },
+    version: {
+        type: String
+    }
 }, {timestamps: true})
 
 const invoiceModel = mongoose.model('Invoices' , invoiceSchema)

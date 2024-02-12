@@ -11,7 +11,6 @@ class AFIPController{
       const token = await afipService.getCuitToken(id, organizationId)
       res.status(200).json(token)
     } catch (err) {
-      console.log(err.message)
       if(err instanceof errors.NotFoundError) {
         return res.status(404).json({message: err.message })
       }
