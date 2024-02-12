@@ -38,7 +38,7 @@ const invoiceSchema = new mongoose.Schema({
     },
     destinataryAddress: {
         type: String,
-        required: true,       
+        required: false,       
     },
     items: [{
         description: {
